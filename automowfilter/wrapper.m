@@ -23,10 +23,41 @@ model = LawnmowerModel(x_hat_i, P_i, Q, R_gps, R_imu);
 model_uncorrected = LawnmowerModel(x_hat_i, P_i, Q, R_gps, R_imu);
 
 %%
-for ii = 1:length(u),
-        fprintf('%f \r',ii/length(u) * 100);
-        x_hat(ii,:) = model.TimeUpdate(u(ii,:),1/f);
-        x_hat(ii,:) = model.MeasUpdateIMU(y(ii),1/f);
-        x_hat_u(ii,:) = model_uncorrected.TimeUpdate(u(ii,:),1/f);
-end
 
+run = true;
+
+iEncoder    = 1;
+iIMU        = 1;
+iGPS        = 1;
+time_index  = 1;
+
+while run == true,
+    tEncoder = encoder_data(iEncoder,1);
+    tGPS     = utm_data(iGPS,1);
+    tIMU     = imu_data(iIMU,1);
+
+    if tEncoder < tIMU && tEncoder < tGPS,
+        % Add this to the time array.
+        time(time_index) = tEncoder;
+        time_index = time_index + 1;
+        % Do a time update
+        model.TimeUpdate(encoder_data(iEncoder,2:3),tEncoder);
+        iEncoder = iEncoder + 1;
+    elseif tIMU < tEncoder && tIMU < tGPS,
+        time(time_index) = tIMU;
+        time_index = time_index + 1;
+        % Do a measurement update
+        model.MeasUpdateIMU(imu_data(iIMU,2));
+        iIMU = iIMU + 1;
+    elseif tGPS < tEncoder && tGPS < tIMU
+        time(time_index) = tGPS;
+        time_index = time_index + 1;
+        model.MeasUpdateGPS(utm_data(iGPS,2:3));
+        iGPS = iGPS + 1;
+    end
+    
+    if time_index > 100,
+        run == false;
+    end
+    
+end

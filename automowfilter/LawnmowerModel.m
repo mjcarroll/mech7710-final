@@ -37,7 +37,7 @@ classdef LawnmowerModel<handle
                 obj.Q = eye(obj.nx);
                 obj.R_gps = eye(obj.ny_gps);
                 obj.R_imu = eye(obj.ny_imu);
-                obj.u_prev = zeros(obj.nu,1);
+                obj.prev_u = zeros(obj.nu,1);
                 obj.F = zeros(6);
             else
                 % Case with input arguemnts
@@ -65,7 +65,7 @@ classdef LawnmowerModel<handle
                 assert(length(R_imu) == obj.ny_imu, ...
                     'LawnmowerModel Constructor Eror: Incorrect R_imu Size');
                 obj.R_imu = R_imu;
-                obj.u_prev = zeros(obj.nu,1);
+                obj.prev_u = zeros(obj.nu,1);
                 obj.prev_time = 0;
                 % Initialize the model to zero, will get set on first
                 % update.
@@ -74,11 +74,8 @@ classdef LawnmowerModel<handle
             return
         end
         
-        function UpdateModel(obj.u,time)
-            % Calculate the time difference from the last update.
-            % This should be static, but ROS doesn't seem to actually give
-            % static dts.
-            dt = time - obj.prev_time;
+        function UpdateModel(obj,u,dt)
+            
             % Here is where we construct the discrete F matrix from our
             % state equations.
             obj.F = eye(6);
@@ -101,13 +98,18 @@ classdef LawnmowerModel<handle
             % Store this input value, it may be useful later.  Especially
             % in the case where measurement updates come significantly
             % faster than time updates.
-            obj.u_prev = u;
+            obj.prev_u = u;
+        end
         
         function [x, P] = TimeUpdate(obj, u, time)
             %TIMEUPDATE - Performs the time update on the system model.
             % u - Input at the time, 2x1, V_L and V_R
             % time - time in seconds of the update
             dt = time - obj.prev_time;
+            obj.prev_time = time;
+            
+            obj.UpdateModel(u,dt);
+            
             v = obj.x_hat(5)/2 * u(2) + obj.x_hat(4)/2 * u(1);
             w = obj.x_hat(5)/obj.x_hat(6) * u(2) ...
                 - obj.x_hat(4)/obj.x_hat(6) * u(1);
@@ -124,7 +126,7 @@ classdef LawnmowerModel<handle
             P = obj.P;
         end
         
-        function [x_hat, P, innovation] = MeasUpdateGPS(obj, y_gps, time)
+        function [x_hat, P, innovation] = MeasUpdateGPS(obj, y_gps)
             C_gps = [1, 0, 0, 0, 0, 0; 
                      0, 1, 0, 0, 0, 0];
             innovation = y_gps - C_gps * obj.x_hat;
@@ -137,7 +139,7 @@ classdef LawnmowerModel<handle
             P = obj.P;
         end
         
-        function [x_hat, P, innovation] = MeasUpdateIMU(obj, y_imu, time)
+        function [x_hat, P, innovation] = MeasUpdateIMU(obj, y_imu)
             C_imu = [0, 0, 1, 0, 0, 0]; 
             innovation = y_imu - C_imu * obj.x_hat;
             S = C_imu * obj.P * C_imu' + obj.R_imu;
