@@ -5,9 +5,9 @@ addpath('../');
 load_data;
 toc
 
-adaptive = false;
+adaptive = true;
 
-imu_data(:,4)= imu_data(:,4) - deg2rad(90);
+imu_data(:,4)= imu_data(:,4)-deg2rad(86);
 %% Initialization of Filter Variables
 
 % Initial State of x_hat
@@ -21,7 +21,7 @@ P_i = diag([1 1 1 1e-10 1e-10 1e-10]);
 % Nominal Values of R and Q, for a non-adaptive filter.
 R_imu = 0.1;
 R_gps = 0.01 * eye(2);
-Q = diag([0.1 0.1 0 0 0 0]);
+Q = diag([1 1 0 0 0 0]);
 
 % Instantiate the model/filter
 model = LawnmowerModel(x_hat_i, P_i, Q, R_gps, R_imu);
@@ -31,7 +31,7 @@ toc
 
 run = true;
 time_index  = 1;
-time_end = 22000;
+time_end = 75000;
 
 iEncoder    = 1;
 iIMU        = 1;
@@ -79,7 +79,7 @@ while run == true,
         x_hat_u(time_index_u,:) = model_uncorrected.MeasUpdateIMU(imu_data(iIMU,4));
         time_index_u = time_index_u+1;
         
-        iIMU = iIMU + 1;
+        iIMU = iIMU + 10;
         
     elseif tGPS < tEncoder && tGPS < tIMU
         time(time_index) = tGPS;
@@ -87,7 +87,6 @@ while run == true,
             [x_hat(time_index,:),P] = model.MeasUpdateGPS(utm_data(iGPS,2:3),...
                 diag([utm_data(iGPS,[4,5])]));
             if mod(iGPS,20) == 0
-
                 e = likelihood(x_hat(time_index,1:2)',P(1:2,1:2),1);
                 plot(e(1,:),e(2,:),'g')
                 clear e;
@@ -119,15 +118,27 @@ while run == true,
 end
 toc
 
+time_end = time_index;
+
 %%
-figure(1), clf;
-scatter(x_hat(1:time_end,1),x_hat(1:time_end,2), 'b+')
-hold on, axis equal;
-scatter(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r+')
+figure(1);
+plot(x_hat(1:time_end,1),x_hat(1:time_end,2), 'b')
+
+xlabel('Easting'); ylabel('Northing');
+
+hold on, axis equal, grid on;
+plot(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r')
 legend('Estimated position', 'GPS position');
+
+% %%
+% qinc = 1;
+% quiver(x_hat(1:qinc:time_end,1),x_hat(1:qinc:time_end,2),...
+%     cos(x_hat(1:qinc:time_end,3)),sin(x_hat(1:qinc:time_end,3)),'g')
+% quiver(utm_data(1:iGPS,2),utm_data(1:iGPS,3),...
+%     cos(imu_data(1:20:iIMU+20,4)),sin(imu_data(1:20:iIMU+20,4)));
 %%
 figure(2), clf;
 scatter(x_hat_u(1:time_index_u,1),x_hat_u(1:time_index_u,2), 'b+')
-hold on, axis equal;
+hold on, axis equal, grid on;
 scatter(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r+')
 legend('Estimated position', 'GPS position');

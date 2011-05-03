@@ -1,9 +1,9 @@
 %dataset = '~/Dropbox/Documentation/data/outside_broun_night_camera_nobase_2011-05-01-22-02-07/';
-%dataset = '~/Dropbox/Documentation/data/outside_broun_night_camera_2011-05-01-21-51-42/';
-dataset = '~/Dropbox/Documentation/data/outside_broun_heading_test_2011-05-01-21-37-15/';
+dataset = '~/Dropbox/Documentation/data/outside_broun_night_camera_2011-05-01-21-51-42/';
+%dataset = '~/Dropbox/Documentation/data/outside_broun_heading_test_2011-05-01-21-37-15/';
 %dataset = '~/Dropbox/Documentation/data/outside_broun_night_camera_nobase_2011-05-01-22-04-21/';
 %dataset = '~/Dropbox/Documentation/data/outside_broun_night_camera_nobase_2011-05-01-22-04-21/';
-utm_fix = importdata(strcat(dataset,'utm_fix.csv'),',',1);
+utm_fix = importdata(strcat(dataset,'utm_fix.csv'),';',1);
 imu = importdata(strcat(dataset,'imu.csv'),',',1);
 encoders = importdata(strcat(dataset,'encoders.csv'),',',1);
 
@@ -25,9 +25,9 @@ utm_data = zeros(length(utm_fix),6);
 utm_data(:,1) = utm_fix(:,1) * 1e-9;             % Convert to seconds
 utm_data(:,2) = utm_fix(:,5) - utm_fix(1,5);     % Transform to origin
 utm_data(:,3) = utm_fix(:,6) - utm_fix(1,6);     % Transform to origin
-utm_data(:,4) = utm_fix(:,13);                   % Lattitude Covariance
-utm_data(:,5) = utm_fix(:,17);                   % Longitude Covariance
-utm_data(:,6) = utm_fix(:,21);                   % Altitude Covariance
+utm_data(:,4) = utm_fix(:,12);                   % Lattitude Covariance
+utm_data(:,5) = utm_fix(:,16);                   % Longitude Covariance
+utm_data(:,6) = utm_fix(:,20);                   % Altitude Covariance
 
 %% Load Encoders
 % Array Format:
