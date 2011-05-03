@@ -13,15 +13,15 @@ imu_data(:,4)= imu_data(:,4) - deg2rad(90);
 % Initial State of x_hat
 % x_hat = [Easting, Northing, Phi, Radius_L, Radius_R, Wheelbase, AHRS Bias]
 % Loaded with nominal values of wheel radius and wheelbase length
-x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461, 0];
+x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461, 0, 0, 0];
 
 % We have a relatively high degree of confidence in our "constants"
-P_i = diag([1 1 1 1e-3 1e-3 1e-3 1]);
+P_i = 1e-6 * eye(9);
 
 % Nominal Values of R and Q, for a non-adaptive filter.
 R_imu = 0.1;
-R_gps = 2 * eye(2);
-Q = diag([0.2 0.2 0.2 0 0 0 0]);
+R_gps = 8 * eye(2);
+Q = diag([0.2 0.2 0.2 0 0 0 0 0 0]);
 
 
 % Instantiate the model/filter
@@ -39,17 +39,19 @@ iIMU        = 1;
 iGPS        = 1;
 
 wc_length = length(encoder_data) + length(utm_data) + length(imu_data);
-x_hat = zeros(wc_length,7);
+x_hat = zeros(wc_length,9);
 time = zeros(wc_length,1);
 
 time_index_u = 1;
 wc_length_nogps = length(encoder_data) + length(imu_data);
-x_hat_u = zeros(wc_length_nogps,7);
+x_hat_u = zeros(wc_length_nogps,9);
 time_u = zeros(wc_length_nogps,1);
 
 model.prev_time = imu_data(1,1);
 model_uncorrected.prev_time = imu_data(1,1);
 
+ii = 1;
+figure(1), clf;
 while run == true,
     tEncoder = encoder_data(iEncoder,1);
     tGPS     = utm_data(iGPS,1);
@@ -83,8 +85,14 @@ while run == true,
     elseif tGPS < tEncoder && tGPS < tIMU
         time(time_index) = tGPS;
         if adaptive == true,
-            x_hat(time_index,:) = model.MeasUpdateGPS(utm_data(iGPS,2:3),...
+            [x_hat(time_index,:), P] = model.MeasUpdateGPS(utm_data(iGPS,2:3),...
                 diag([utm_data(iGPS,[4,5])]));
+            if mod(iGPS,20) == 0
+                e = likelihood(x_hat(time_index,1:2)',P(1:2,1:2),1);
+                plot(e(1,:),e(2,:),'r')
+                asdf(ii) = P(1,1);
+                ii = ii + 1;
+            end
         else
             x_hat(time_index,:) = model.MeasUpdateGPS(utm_data(iGPS,2:3));
         end

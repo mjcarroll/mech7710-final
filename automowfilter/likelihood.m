@@ -6,7 +6,7 @@ for jj = 1:length(C),
         e(:,ii) = Mu + ...
             C(jj) * chol(P_x,'lower')*[cos(theta(ii));sin(theta(ii))];
     end
-    axis equal, hold on
+    hold on;
 end
 end
 
