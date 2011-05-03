@@ -108,11 +108,12 @@ classdef LawnmowerModel<handle
             obj.G(2,5) = 1/2 * dt * u(2) * cos(obj.x_hat(3));
             obj.G(3,1) = -dt * obj.x_hat(4)/obj.x_hat(6);
             obj.G(3,2) = dt * obj.x_hat(5)/obj.x_hat(6);
+            obj.G(3,3) = dt;
             obj.G(3,4) = -dt * obj.x_hat(4)/obj.x_hat(6);
             obj.G(3,5) = dt * obj.x_hat(5)/obj.x_hat(6);
-            obj.G(4,4) = 1;
-            obj.G(5,5) = 1;
-            obj.G(6,6) = 1;
+            obj.G(4,4) = dt;
+            obj.G(5,5) = dt;
+            obj.G(6,6) = dt;
             
             
             % Store this input value, it may be useful later.  Especially
