@@ -7,29 +7,23 @@ toc
 
 adaptive = true;
 
-
-
 imu_data(:,4)= imu_data(:,4)-deg2rad(86);
 
-for ii = 1:length(imu_data)
-    if imu_data(ii,4) < 0
-        imu_data(ii,4) = imu_data(ii,4) + 2 * pi;
-    end
-end
+
 %% Initialization of Filter Variables
 
 % Initial State of x_hat
 % x_hat = [Easting, Northing, Phi, Radius_L, Radius_R, Wheelbase]
 % Loaded with nominal values of wheel radius and wheelbase length
-x_hat_i = [0, 0, 0, 0.158, 0.158, 0.5461];
+x_hat_i = [0, 0, 1, 0];
 
 % We have a relatively high degree of confidence in our "constants"
-P_i = diag([1 1 1 1e-10 1e-10 1e-10]);
+P_i = diag([1 1 1 1]);
 
 % Nominal Values of R and Q, for a non-adaptive filter.
-R_imu = 0.1;
+R_imu = 0.1 * eye(2);
 R_gps = 0.01 * eye(2);
-Q = diag([1 1 0 0 0 0]);
+Q = diag([1 1 0 0]);
 
 % Instantiate the model/filter
 model = LawnmowerModel(x_hat_i, P_i, Q, R_gps, R_imu);
@@ -46,12 +40,12 @@ iIMU        = 1;
 iGPS        = 1;
 
 wc_length = length(encoder_data) + length(utm_data) + length(imu_data);
-x_hat = zeros(wc_length,6);
+x_hat = zeros(wc_length,4);
 time = zeros(wc_length,1);
 
 time_index_u = 1;
 wc_length_nogps = length(encoder_data) + length(imu_data);
-x_hat_u = zeros(wc_length_nogps,6);
+x_hat_u = zeros(wc_length_nogps,4);
 time_u = zeros(wc_length_nogps,1);
 
 model.prev_time = imu_data(1,1);
@@ -84,7 +78,8 @@ while run == true,
         time_index = time_index + 1;
         
         time_u(time_index_u) = tEncoder;
-        x_hat_u(time_index_u,:) = model_uncorrected.MeasUpdateIMU(imu_data(iIMU,4));
+        x_hat_u(time_index_u,:) = model_uncorrected.MeasUpdateIMU(...
+            [cos(imu_data(iIMU,4)); sin(imu_data(iIMU,4))]);
         time_index_u = time_index_u+1;
         
         iIMU = iIMU + 10;
