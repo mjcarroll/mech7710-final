@@ -5,7 +5,7 @@ addpath('../');
 load_data;
 toc
 
- imu_data(:,4)= imu_data(:,4) - deg2rad(90);
+imu_data(:,4)= imu_data(:,4) - deg2rad(90);
 %% Initialization of Filter Variables
 
 % Initial State of x_hat
@@ -101,7 +101,6 @@ while run == true,
 end
 toc
 
-time = time - time(1);
 %%
 figure(1);
 plot(x_hat(1:time_end,1),x_hat(1:time_end,2))
