@@ -44,7 +44,6 @@ encoder_data(:,2:3) = encoders(:,2:3);
 imu_data = zeros(length(imu),7);
 imu_data(:,1) = imu(:,1) * 1e-9;
 [imu_data(:,2), imu_data(:,3), imu_data(:,4)] = quat2angle(imu(:,4:7));
-imu_data(:,4) = -imu_data(:,4);
 imu_data(:,5:7) = imu(:,[8 12 16]);
 
 %%

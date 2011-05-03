@@ -17,9 +17,9 @@ x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461, 0];
 P_i = diag([1 1 1 1e-3 1e-3 1e-3 1]);
 
 % Nominal Values of R and Q, for a non-adaptive filter.
-R_imu = 0.05;
+R_imu = 0.04;
 R_gps = 0.02 * eye(2);
-Q = diag([1 1 1 0 0 0 0.01]);
+Q = diag([0.2 0.2 1 0 0 0 0.01]);
 
 % Instantiate the model/filter
 model = LawnmowerModel(x_hat_i, P_i, Q, R_gps, R_imu);
@@ -29,7 +29,7 @@ toc
 
 run = true;
 time_index  = 1;
-time_end    = 13000;
+time_end    = 40000;
 
 iEncoder    = 1;
 iIMU        = 1;
@@ -41,7 +41,7 @@ time = zeros(wc_length,1);
 
 time_index_u = 1;
 wc_length_nogps = length(encoder_data) + length(imu_data);
-x_hat_u = zeros(wc_length_nogps,6);
+x_hat_u = zeros(wc_length_nogps,7);
 time_u = zeros(wc_length_nogps,1);
 
 model.prev_time = imu_data(1,1);
