@@ -1,7 +1,7 @@
-addpath('~/Dropbox/Documentation/data/outside_broun_night_camera_2011-05-01-21-51-42/');
-load utm_fix.csv
-load imu.csv
-load encoders.csv
+dataset = '~/Dropbox/Documentation/data/outside_broun_night_camera_2011-05-01-21-51-42/';
+load(strcat(dataset,'utm_fix.csv'));
+load(strcat(dataset,'imu.csv'));
+load(strcat(dataset,'encoders.csv'));
 
 %% Load UTM
 % Load in UTM data into an array.
@@ -48,4 +48,4 @@ imu_data(:,2) = imu_data(:,2);
 imu_data(:,5:7) = imu(:,[8 12 16]);
 
 %%
-clear imu; clear utm_fix; clear encoders;
+clear imu; clear utm_fix; clear encoders; clear dataset;
