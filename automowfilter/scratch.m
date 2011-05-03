@@ -41,4 +41,16 @@ for ii = 1:3
         sprintf('%i',ii+3),'$$'),'interpreter','latex')
 end
 
-%%
+%% IMU vs UTM calculated heading
+figure();
+subplot(2,1,1)
+plot(imu_data(:,1),imu_data(:,4));
+
+utm_heading(1) = 0;
+for ii=2:length(utm_data(:,1))
+    utm_heading(ii) = atan((utm_data(ii,3)-utm_data(ii-1,3))/(utm_data(ii,2)-utm_data(ii-1,2)));
+end
+%utm_heading(length(utm_data(:,1))+1) = utm_heading(length(utm_data(:,1)));
+
+subplot(2,1,2)
+plot(utm_data(:,1),utm_heading(:));

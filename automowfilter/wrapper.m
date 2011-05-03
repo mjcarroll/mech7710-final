@@ -29,7 +29,7 @@ toc
 
 run = true;
 time_index  = 1;
-time_end = 10000;
+time_end = 13000;
 
 iEncoder    = 1;
 iIMU        = 1;
