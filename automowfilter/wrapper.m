@@ -5,7 +5,7 @@ addpath('../');
 load_data;
 toc
 
-adaptive = true;
+adaptive = false;
 
 imu_data(:,4)= imu_data(:,4) - deg2rad(90);
 %% Initialization of Filter Variables
@@ -21,7 +21,7 @@ P_i = diag([1 1 1 1e-3 1e-3 1e-3]);
 % Nominal Values of R and Q, for a non-adaptive filter.
 R_imu = 0.1;
 R_gps = 3 * eye(2);
-Q = diag([0.1 0.1 0.1 0 0 0]);
+Q = diag([0.1 0.1 0 1e-3 1e-3 1e-10]);
 
 % Instantiate the model/filter
 model = LawnmowerModel(x_hat_i, P_i, Q, R_gps, R_imu);
@@ -50,7 +50,7 @@ model.prev_time = imu_data(1,1);
 model_uncorrected.prev_time = imu_data(1,1);
 
 ii = 1;
-figure(1), clf;
+figure(1), clf, axis equal;
 while run == true,
     tEncoder = encoder_data(iEncoder,1);
     tGPS     = utm_data(iGPS,1);
@@ -87,9 +87,12 @@ while run == true,
             [x_hat(time_index,:),P] = model.MeasUpdateGPS(utm_data(iGPS,2:3),...
                 diag([utm_data(iGPS,[4,5])]));
             if mod(iGPS,20) == 0
+
                 e = likelihood(x_hat(time_index,1:2)',P(1:2,1:2),1);
                 plot(e(1,:),e(2,:),'g')
-                asdf(ii) = P(1,1);
+                clear e;
+                asdf(ii,1) = P(1,1);
+                asdf(ii,2) = P(2,2);
                 ii = ii + 1;
             end
         else

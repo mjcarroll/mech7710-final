@@ -11,6 +11,7 @@ classdef LawnmowerModel<handle
         prev_u;
         prev_time;
         F;
+        G;
     end
     
     properties(Constant = true)
@@ -39,6 +40,7 @@ classdef LawnmowerModel<handle
                 obj.R_imu = eye(obj.ny_imu);
                 obj.prev_u = zeros(obj.nu,1);
                 obj.F = zeros(6);
+                obj.G = zeros(6);
             else
                 % Case with input arguemnts
                 % Make sure that x_hat_i is properly sized, transpose if
@@ -70,6 +72,7 @@ classdef LawnmowerModel<handle
                 % Initialize the model to zero, will get set on first
                 % update.
                 obj.F = zeros(6);
+                obj.G = zeros(6);
             end
             return
         end
@@ -93,6 +96,24 @@ classdef LawnmowerModel<handle
             obj.F(3,6) = dt * ...
                 (obj.x_hat(4) * u(1) - obj.x_hat(5) * u(2)) / ...
                 obj.x_hat(6)^2;
+            
+            obj.G = zeros(6);
+            obj.G(1,1) = 1/2 * dt * obj.x_hat(4) * cos(obj.x_hat(3));
+            obj.G(1,2) = 1/2 * dt * obj.x_hat(5) * cos(obj.x_hat(3));
+            obj.G(1,4) = 1/2 * dt * u(1) * cos(obj.x_hat(3));
+            obj.G(1,5) = 1/2 * dt * u(2) * cos(obj.x_hat(3));
+            obj.G(2,1) = 1/2 * dt * obj.x_hat(4) * sin(obj.x_hat(3));
+            obj.G(2,2) = 1/2 * dt * obj.x_hat(5) * sin(obj.x_hat(3));
+            obj.G(2,4) = 1/2 * dt * u(1) * cos(obj.x_hat(3));
+            obj.G(2,5) = 1/2 * dt * u(2) * cos(obj.x_hat(3));
+            obj.G(3,1) = -dt * obj.x_hat(4)/obj.x_hat(6);
+            obj.G(3,2) = dt * obj.x_hat(5)/obj.x_hat(6);
+            obj.G(3,4) = -dt * obj.x_hat(4)/obj.x_hat(6);
+            obj.G(3,5) = dt * obj.x_hat(5)/obj.x_hat(6);
+            obj.G(4,4) = 1;
+            obj.G(5,5) = 1;
+            obj.G(6,6) = 1;
+            
             
             % Store this input value, it may be useful later.  Especially
             % in the case where measurement updates come significantly
@@ -119,7 +140,7 @@ classdef LawnmowerModel<handle
                 dt * v * sin(obj.x_hat(3) + dt * w/2);
             obj.x_hat(3) = obj.x_hat(3) + dt * w;
             
-            obj.P = obj.F * obj.P * obj.F' + obj.Q;
+            obj.P = obj.F * obj.P * obj.F' + obj.G * obj.Q * obj.G';
             
             x = obj.x_hat;
             P = obj.P;
