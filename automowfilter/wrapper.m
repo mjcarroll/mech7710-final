@@ -4,6 +4,8 @@ tic;
 addpath('../');
 load_data;
 toc
+
+ imu_data(:,4)= imu_data(:,4) - deg2rad(90);
 %% Initialization of Filter Variables
 
 % Initial State of x_hat
@@ -37,6 +39,13 @@ wc_length = length(encoder_data) + length(utm_data) + length(imu_data);
 x_hat = zeros(wc_length,7);
 time = zeros(wc_length,1);
 
+time_index_u = 1;
+wc_length_nogps = length(encoder_data) + length(imu_data);
+x_hat_u = zeros(wc_length_nogps,6);
+time_u = zeros(wc_length_nogps,1);
+
+model.prev_time = imu_data(1,1);
+model_uncorrected.prev_time = imu_data(1,1);
 
 while run == true,
     tEncoder = encoder_data(iEncoder,1);
@@ -48,14 +57,26 @@ while run == true,
         time(time_index) = tEncoder;
         % Do a time update
         x_hat(time_index,:) = model.TimeUpdate(encoder_data(iEncoder,2:3),tEncoder);
-        iEncoder = iEncoder + 1;
         time_index = time_index + 1;
+        
+        time_u(time_index_u) = tEncoder;
+        x_hat_u(time_index_u,:) = model_uncorrected.TimeUpdate(encoder_data(iEncoder,2:3),tEncoder);
+        time_index_u = time_index_u+1;
+        
+        iEncoder = iEncoder + 1;
+        
     elseif tIMU < tEncoder && tIMU < tGPS,
         time(time_index) = tIMU;
         % Do a measurement update
         x_hat(time_index,:) = model.MeasUpdateIMU(imu_data(iIMU,4));
-        iIMU = iIMU + 1;
         time_index = time_index + 1;
+        
+        time_u(time_index_u) = tEncoder;
+        x_hat_u(time_index_u,:) = model_uncorrected.MeasUpdateIMU(imu_data(iIMU,4));
+        time_index_u = time_index_u+1;
+        
+        iIMU = iIMU + 1;
+        
     elseif tGPS < tEncoder && tGPS < tIMU
         time(time_index) = tGPS;
         x_hat(time_index,:) = model.MeasUpdateGPS(utm_data(iGPS,2:3));
@@ -82,7 +103,14 @@ toc
 
 time = time - time(1);
 %%
-figure();
+figure(1);
 plot(x_hat(1:time_end,1),x_hat(1:time_end,2))
 hold on;
 plot(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'g')
+
+%%
+figure(2);
+plot(x_hat_u(1:time_index_u,1),x_hat_u(1:time_index_u,2))
+hold on;
+plot(utm_data(1:700,2),utm_data(1:700,3),'g')
+
