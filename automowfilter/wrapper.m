@@ -17,16 +17,15 @@ x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461];
 P_i = diag([1 1 1 1e-3 1e-3 1e-3]);
 
 % Nominal Values of R and Q, for a non-adaptive filter.
-R_imu = 0.5;
-R_gps = 3 * eye(2);
-Q = diag([1 1 1 0 0 0]);
+R_imu = 0.1;
+R_gps = 2 * eye(2);
+Q = diag([0.2 0.2 0.2 0 0 0]);
 
 % Instantiate the model/filter
 model = LawnmowerModel(x_hat_i, P_i, Q, R_gps, R_imu);
 model_uncorrected = LawnmowerModel(x_hat_i, P_i, Q, R_gps, R_imu);
 toc
 %%
-
 run = true;
 time_index  = 1;
 time_end = 10000;
