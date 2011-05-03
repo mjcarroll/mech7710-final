@@ -7,7 +7,15 @@ toc
 
 adaptive = true;
 
+
+
 imu_data(:,4)= imu_data(:,4)-deg2rad(86);
+
+for ii = 1:length(imu_data)
+    if imu_data(ii,4) < 0
+        imu_data(ii,4) = imu_data(ii,4) + 2 * pi;
+    end
+end
 %% Initialization of Filter Variables
 
 % Initial State of x_hat

@@ -9,12 +9,15 @@ utm_data(:,1) = utm_data(:,1) - utm_data(1,1);
 figure();
 subplot(3,1,1)
 plot(imu_data(:,1),imu_data(:,4));
+title('AHRS Phi');
 
 subplot(3,1,2)
 plot(utm_data(:,1),utm_data(:,2));
+title('Easting');
 
 subplot(3,1,3)
 plot(utm_data(:,1),utm_data(:,3));
+title('Northing');
 
 %% Plot states of x_hat to x_hat_u
 
@@ -61,3 +64,12 @@ end
 
 subplot(2,1,2)
 plot(utm_data(:,1),utm_heading(:));
+
+%%
+
+for ii = 1:length(imu_data)
+    if imu_data(ii,4) < 0
+        imu_data(ii,4) = imu_data(ii,4) + 2 * pi;
+    end
+end
+plot(imu_data(:,4))
