@@ -5,6 +5,8 @@ addpath('../');
 load_data;
 toc
 
+adaptive = true;
+
 imu_data(:,4)= imu_data(:,4) - deg2rad(90);
 %% Initialization of Filter Variables
 
@@ -79,7 +81,12 @@ while run == true,
         
     elseif tGPS < tEncoder && tGPS < tIMU
         time(time_index) = tGPS;
-        x_hat(time_index,:) = model.MeasUpdateGPS(utm_data(iGPS,2:3));
+        if adaptive == true,
+            x_hat(time_index,:) = model.MeasUpdateGPS(utm_data(iGPS,2:3),...
+                diag([utm_data(iGPS,[4,5])]));
+        else
+            x_hat(time_index,:) = model.MeasUpdateGPS(utm_data(iGPS,2:3));
+        end
         iGPS = iGPS + 1;
         time_index = time_index + 1;
     end

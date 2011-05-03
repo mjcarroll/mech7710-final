@@ -125,17 +125,30 @@ classdef LawnmowerModel<handle
             P = obj.P;
         end
         
-        function [x_hat, P, innovation] = MeasUpdateGPS(obj, y_gps)
-            C_gps = [1, 0, 0, 0, 0, 0; 
-                     0, 1, 0, 0, 0, 0];
-            innovation = y_gps' - C_gps * obj.x_hat;
-            S = C_gps * obj.P * C_gps' + obj.R_gps;
-            K = obj.P * C_gps'/S;
-            obj.x_hat = obj.x_hat + K * innovation;
-            obj.P = (eye(obj.nx) - K * C_gps) * obj.P;
-            
-            x_hat = obj.x_hat;
-            P = obj.P;
+        function [x_hat, P, innovation] = MeasUpdateGPS(obj, y_gps, R_gps)
+            if nargin == 2, 
+                C_gps = [1, 0, 0, 0, 0, 0; 
+                         0, 1, 0, 0, 0, 0];
+                innovation = y_gps' - C_gps * obj.x_hat;
+                S = C_gps * obj.P * C_gps' + obj.R_gps;
+                K = obj.P * C_gps'/S;
+                obj.x_hat = obj.x_hat + K * innovation;
+                obj.P = (eye(obj.nx) - K * C_gps) * obj.P;
+
+                x_hat = obj.x_hat;
+                P = obj.P;
+            else
+                C_gps = [1, 0, 0, 0, 0, 0; 
+                         0, 1, 0, 0, 0, 0];
+                innovation = y_gps' - C_gps * obj.x_hat;
+                S = C_gps * obj.P * C_gps' + R_gps;
+                K = obj.P * C_gps'/S;
+                obj.x_hat = obj.x_hat + K * innovation;
+                obj.P = (eye(obj.nx) - K * C_gps) * obj.P;
+
+                x_hat = obj.x_hat;
+                P = obj.P;
+            end
         end
         
         function [x_hat, P, innovation] = MeasUpdateIMU(obj, y_imu)
