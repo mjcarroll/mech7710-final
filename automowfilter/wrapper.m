@@ -110,11 +110,13 @@ toc
 
 %%
 figure(1);
-plot(x_hat(1:time_end,1),x_hat(1:time_end,2))
+scatter(x_hat(1:time_end,1),x_hat(1:time_end,2), 'b+')
 hold on;
-plot(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'g')
+scatter(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r+')
+legend('Estimated position', 'GPS position');
 %%
 figure(2);
-plot(x_hat_u(1:time_index_u,1),x_hat_u(1:time_index_u,2))
+scatter(x_hat_u(1:time_index_u,1),x_hat_u(1:time_index_u,2), 'b+')
 hold on;
-plot(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'g')
+scatter(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r+')
+legend('Estimated position', 'GPS position');
