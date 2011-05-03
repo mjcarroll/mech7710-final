@@ -35,7 +35,7 @@ classdef LawnmowerModel<handle
                 obj.x_hat = [zeros(obj.nx/2,1); ones(obj.nx/2,1)];
                 obj.P = eye(obj.nx);
                 obj.Q = eye(obj.nx);
-                obj.R_gps = eye(obj.ny_gps);
+                obj.R_gps = 500*eye(obj.ny_gps);
                 obj.R_imu = eye(obj.ny_imu);
                 obj.prev_u = zeros(obj.nu,1);
                 obj.F = zeros(6);
