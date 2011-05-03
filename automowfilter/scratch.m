@@ -18,7 +18,7 @@ plot(utm_data(:,1),utm_data(:,3));
 
 %% Plot states of x_hat to x_hat_u
 
-iStart = 1;      iEnd = 10000;
+iStart = 1;      iEnd = 2000;
 
 figure(1);
 
@@ -40,3 +40,5 @@ for ii = 1:3
         sprintf('%i',ii+3),'$$ with GPS vs $$\hat{X}_',...
         sprintf('%i',ii+3),'$$'),'interpreter','latex')
 end
+
+%%

@@ -18,7 +18,7 @@ P_i = diag([1 1 1 1e-3 1e-3 1e-3]);
 
 % Nominal Values of R and Q, for a non-adaptive filter.
 R_imu = 0.5;
-R_gps = 0.05 * eye(2);
+R_gps = 3 * eye(2);
 Q = diag([1 1 1 0 0 0]);
 
 % Instantiate the model/filter
@@ -29,7 +29,7 @@ toc
 
 run = true;
 time_index  = 1;
-time_end    = 13000;
+time_end = 10000;
 
 iEncoder    = 1;
 iIMU        = 1;
@@ -75,7 +75,7 @@ while run == true,
         x_hat_u(time_index_u,:) = model_uncorrected.MeasUpdateIMU(imu_data(iIMU,4));
         time_index_u = time_index_u+1;
         
-        iIMU = iIMU + 1;
+        iIMU = iIMU + 5;
         
     elseif tGPS < tEncoder && tGPS < tIMU
         time(time_index) = tGPS;
@@ -110,4 +110,4 @@ plot(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'g')
 figure(2);
 plot(x_hat_u(1:time_index_u,1),x_hat_u(1:time_index_u,2))
 hold on;
-plot(utm_data(1:700,2),utm_data(1:700,3),'g')
+plot(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'g')
