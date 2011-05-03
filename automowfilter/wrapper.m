@@ -19,9 +19,9 @@ x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461];
 P_i = diag([1 1 1 1e-3 1e-3 1e-3]);
 
 % Nominal Values of R and Q, for a non-adaptive filter.
-R_imu = 0.5;
+R_imu = 0.1;
 R_gps = 3 * eye(2);
-Q = diag([1 1 1 0 0 0]);
+Q = diag([0.1 0.1 0.1 0 0 0]);
 
 % Instantiate the model/filter
 model = LawnmowerModel(x_hat_i, P_i, Q, R_gps, R_imu);
@@ -49,6 +49,8 @@ time_u = zeros(wc_length_nogps,1);
 model.prev_time = imu_data(1,1);
 model_uncorrected.prev_time = imu_data(1,1);
 
+ii = 1;
+figure(1), clf;
 while run == true,
     tEncoder = encoder_data(iEncoder,1);
     tGPS     = utm_data(iGPS,1);
@@ -82,8 +84,14 @@ while run == true,
     elseif tGPS < tEncoder && tGPS < tIMU
         time(time_index) = tGPS;
         if adaptive == true,
-            x_hat(time_index,:) = model.MeasUpdateGPS(utm_data(iGPS,2:3),...
+            [x_hat(time_index,:),P] = model.MeasUpdateGPS(utm_data(iGPS,2:3),...
                 diag([utm_data(iGPS,[4,5])]));
+            if mod(iGPS,20) == 0
+                e = likelihood(x_hat(time_index,1:2)',P(1:2,1:2),1);
+                plot(e(1,:),e(2,:),'g')
+                asdf(ii) = P(1,1);
+                ii = ii + 1;
+            end
         else
             x_hat(time_index,:) = model.MeasUpdateGPS(utm_data(iGPS,2:3));
         end
