@@ -31,7 +31,7 @@ toc
 
 run = true;
 time_index  = 1;
-time_end = 15000;
+time_end = 22000;
 
 iEncoder    = 1;
 iIMU        = 1;
@@ -79,7 +79,7 @@ while run == true,
         x_hat_u(time_index_u,:) = model_uncorrected.MeasUpdateIMU(imu_data(iIMU,4));
         time_index_u = time_index_u+1;
         
-        iIMU = iIMU + 5;
+        iIMU = iIMU + 1;
         
     elseif tGPS < tEncoder && tGPS < tIMU
         time(time_index) = tGPS;
@@ -120,14 +120,14 @@ end
 toc
 
 %%
-figure(1);
+figure(1), clf;
 scatter(x_hat(1:time_end,1),x_hat(1:time_end,2), 'b+')
-hold on;
+hold on, axis equal;
 scatter(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r+')
 legend('Estimated position', 'GPS position');
 %%
-figure(2);
+figure(2), clf;
 scatter(x_hat_u(1:time_index_u,1),x_hat_u(1:time_index_u,2), 'b+')
-hold on;
+hold on, axis equal;
 scatter(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r+')
 legend('Estimated position', 'GPS position');
