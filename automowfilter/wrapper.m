@@ -14,9 +14,9 @@ x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461];
 P_i = diag([1 1 1 1e-3 1e-3 1e-3]);
 
 % Nominal Values of R and Q, for a non-adaptive filter.
-R_imu = 1e-4;
-R_gps = eye(2);
-Q = diag([1 1 1 1e-6 1e-6 1e-6]);
+R_imu = 0.01;
+R_gps = 0.05 * eye(2);
+Q = diag([0.05 0.05 0.05 1e-6 1e-6 1e-6]);
 
 % Instantiate the model/filter
 model = LawnmowerModel(x_hat_i, P_i, Q, R_gps, R_imu);
@@ -31,6 +31,11 @@ iIMU        = 1;
 iGPS        = 1;
 time_index  = 1;
 
+wc_length = length(encoder_data) + length(utm_data) + length(imu_data);
+x_hat = zeros(wc_length,6);
+time = zeros(wc_length,1);
+
+
 while run == true,
     tEncoder = encoder_data(iEncoder,1);
     tGPS     = utm_data(iGPS,1);
@@ -39,25 +44,37 @@ while run == true,
     if tEncoder < tIMU && tEncoder < tGPS,
         % Add this to the time array.
         time(time_index) = tEncoder;
-        time_index = time_index + 1;
         % Do a time update
-        model.TimeUpdate(encoder_data(iEncoder,2:3),tEncoder);
+        x_hat(time_index,:) = model.TimeUpdate(encoder_data(iEncoder,2:3),tEncoder);
         iEncoder = iEncoder + 1;
+        time_index = time_index + 1;
     elseif tIMU < tEncoder && tIMU < tGPS,
         time(time_index) = tIMU;
-        time_index = time_index + 1;
         % Do a measurement update
-        model.MeasUpdateIMU(imu_data(iIMU,2));
+        x_hat(time_index,:) = model.MeasUpdateIMU(imu_data(iIMU,2));
         iIMU = iIMU + 1;
+        time_index = time_index + 1;
     elseif tGPS < tEncoder && tGPS < tIMU
         time(time_index) = tGPS;
-        time_index = time_index + 1;
-        model.MeasUpdateGPS(utm_data(iGPS,2:3));
+        x_hat(time_index,:) = model.MeasUpdateGPS(utm_data(iGPS,2:3));
         iGPS = iGPS + 1;
+        time_index = time_index + 1;
     end
     
-    if time_index > 100,
-        run == false;
+    if iGPS == length(utm_data),
+        run = false;
+    end
+    if iIMU == length(imu_data),
+        run = false;
+    end
+    if iEncoder == length(encoder_data),
+        run = false;
     end
     
 end
+
+figure();
+plot(time,x_hat(:,1))
+
+figure();
+plot(x_hat(:,1),x_hat(:,2))

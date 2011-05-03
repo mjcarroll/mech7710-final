@@ -129,7 +129,7 @@ classdef LawnmowerModel<handle
         function [x_hat, P, innovation] = MeasUpdateGPS(obj, y_gps)
             C_gps = [1, 0, 0, 0, 0, 0; 
                      0, 1, 0, 0, 0, 0];
-            innovation = y_gps - C_gps * obj.x_hat;
+            innovation = y_gps' - C_gps * obj.x_hat;
             S = C_gps * obj.P * C_gps' + obj.R_gps;
             K = obj.P * C_gps'/S;
             obj.x_hat = obj.x_hat + K * innovation;
