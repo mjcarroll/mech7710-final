@@ -75,7 +75,6 @@ classdef LawnmowerModel<handle
         end
         
         function UpdateModel(obj,u,dt)
-            
             % Here is where we construct the discrete F matrix from our
             % state equations.
             obj.F = eye(6);
