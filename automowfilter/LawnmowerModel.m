@@ -8,16 +8,18 @@ classdef LawnmowerModel<handle
         Q;
         R_gps;
         R_imu;
-        prev_u;
         prev_time;
         F;
         G;
+        Radius_right = 0.158;
+        Radius_left = 0.158;
+        Wheelbase = 0.5461;
     end
     
     properties(Constant = true)
-        nx = 6;
+        nx = 4;
         ny_gps = 2;
-        ny_imu = 1;
+        ny_imu = 2;
         nu = 2;
     end
     
@@ -33,14 +35,13 @@ classdef LawnmowerModel<handle
             % R_imu         -  IMU Measurement Noise Covariance
             if(nargin == 0)
                 % Default case, initialize everything to some values.
-                obj.x_hat = [zeros(obj.nx/2,1); ones(obj.nx/2,1)];
+                obj.x_hat = [zeros(4,1)];
                 obj.P = eye(obj.nx);
                 obj.Q = eye(obj.nx);
-                obj.R_gps = 500*eye(obj.ny_gps);
+                obj.R_gps = 5*eye(obj.ny_gps);
                 obj.R_imu = eye(obj.ny_imu);
-                obj.prev_u = zeros(obj.nu,1);
-                obj.F = zeros(6);
-                obj.G = zeros(6);
+                obj.F = zeros(obj.nx);
+                obj.G = zeros(obj.nx);
             else
                 % Case with input arguemnts
                 % Make sure that x_hat_i is properly sized, transpose if
@@ -67,12 +68,11 @@ classdef LawnmowerModel<handle
                 assert(length(R_imu) == obj.ny_imu, ...
                     'LawnmowerModel Constructor Eror: Incorrect R_imu Size');
                 obj.R_imu = R_imu;
-                obj.prev_u = zeros(obj.nu,1);
                 obj.prev_time = 0;
                 % Initialize the model to zero, will get set on first
                 % update.
-                obj.F = zeros(6);
-                obj.G = zeros(6);
+                obj.F = zeros(obj.nx);
+                obj.G = zeros(obj.nx);
             end
             return
         end
@@ -80,46 +80,64 @@ classdef LawnmowerModel<handle
         function UpdateModel(obj,u,dt)
             % Here is where we construct the discrete F matrix from our
             % state equations.
-            obj.F = eye(6);
-            obj.F(1,3) = -1/2 * dt * ...
-                (obj.x_hat(4) * u(1) + obj.x_hat(5)*u(2)) ...
-                * sin(obj.x_hat(3));
-            obj.F(1,4) = 1/2 * dt * u(1) * cos(obj.x_hat(3));
-            obj.F(1,5) = 1/2 * dt * u(2) * cos(obj.x_hat(3));
-            obj.F(2,3) = 1/2 * dt * ...
-                (obj.x_hat(4) * u(1) + obj.x_hat(5)*u(2)) ...
-                * cos(obj.x_hat(3));
-            obj.F(2,4) = 1/2 * dt * u(1) * sin(obj.x_hat(3));
-            obj.F(2,5) = 1/2 * dt * u(2) * sin(obj.x_hat(3));
-            obj.F(3,4) = -dt * u(1)/obj.x_hat(6);
-            obj.F(3,5) = dt * u(2)/obj.x_hat(6);
-            obj.F(3,6) = dt * ...
-                (obj.x_hat(4) * u(1) - obj.x_hat(5) * u(2)) / ...
-                obj.x_hat(6)^2;
             
-            obj.G = zeros(6);
-            obj.G(1,1) = 1/2 * dt * obj.x_hat(4) * cos(obj.x_hat(3));
-            obj.G(1,2) = 1/2 * dt * obj.x_hat(5) * cos(obj.x_hat(3));
-            obj.G(1,4) = 1/2 * dt * u(1) * cos(obj.x_hat(3));
-            obj.G(1,5) = 1/2 * dt * u(2) * cos(obj.x_hat(3));
-            obj.G(2,1) = 1/2 * dt * obj.x_hat(4) * sin(obj.x_hat(3));
-            obj.G(2,2) = 1/2 * dt * obj.x_hat(5) * sin(obj.x_hat(3));
-            obj.G(2,4) = 1/2 * dt * u(1) * cos(obj.x_hat(3));
-            obj.G(2,5) = 1/2 * dt * u(2) * cos(obj.x_hat(3));
-            obj.G(3,1) = -dt * obj.x_hat(4)/obj.x_hat(6);
-            obj.G(3,2) = dt * obj.x_hat(5)/obj.x_hat(6);
-            obj.G(3,3) = dt;
-            obj.G(3,4) = -dt * obj.x_hat(4)/obj.x_hat(6);
-            obj.G(3,5) = dt * obj.x_hat(5)/obj.x_hat(6);
-            obj.G(4,4) = dt;
-            obj.G(5,5) = dt;
-            obj.G(6,6) = dt;
+            v = obj.Radius_left * u(1)/2 + ...
+                obj.Radius_right * u(2)/2;
+            w = -obj.Radius_left * u(1)/obj.Wheelbase + ...
+                obj.Radius_right * u(2)/obj.Wheelbase;
+            
+            obj.F = eye(obj.nx);
+            obj.F(1,3) = dt * v * cos(dt * w);
+            obj.F(1,4) = -dt * v * sin(dt * w);
+            
+            obj.F(2,3) = dt * v * cos(dt * w);
+            obj.F(2,4) = dt * v * sin(dt * w);
+            
+            obj.F(3,3) = cos(dt*w);
+            obj.F(3,4) = -sin(dt*w);
+            
+            obj.F(4,3) = cos(dt*w);
+            obj.F(4,4) = sin(dt*w);
+            
+            phi_n_prime = obj.x_hat(3) * cos(dt * w) - ...
+                obj.x_hat(4) * sin(dt * w);
+            phi_e_prime = obj.x_hat(3) * cost(dt*w) + ...
+                obj.x_hat(4) * sin(dt * w);
+            
+            obj.G = zeros(obj.nx);
+            obj.G(1,1) = ...
+                T * obj.Radius_left * (1/2 * phi_n_prime - ...
+                T * v / obj.Wheelbase * ...
+                (obj.x_hat(4) * cos(T*w) + obj.x_hat(3) * sin(T*w)));
+            obj.G(1,2) = ...
+                T * obj.Radius_right * (1/2 * phi_n_prime - ...
+                T * v / obj.Wheelbase * ...
+                (obj.x_hat(4) * cos(T*w) + obj.x_hat(3) * sin(T*w)));
+            obj.G(2,1) = ...
+                T * obj.Radius_left * (1/2 * phi_e_prime + ...
+                T * v / obj.Wheelbase * ...
+                (obj.x_hat(4) * cos(T*w) - obj.x_hat(3) * sin(T*w)));
+            obj.G(2,2) = ...
+                T * obj.Radius_right * (1/2 * phi_e_prime + ...
+                T * v / obj.Wheelbase * ...
+                (obj.x_hat(4) * cos(T*w) - obj.x_hat(3) * sin(T*w)));
+            obj.G(3,1) = ...
+                -T * obj.Radius_left / obj.Wheelbase * ...
+                (obj.x_hat(4) * cos(T*w) + obj.x_hat(3) * sin(T*w));
+            obj.G(3,2) = ...
+                -T * obj.Radius_right / obj.Wheelbase * ...
+                (obj.x_hat(4) * cos(T*w) + obj.x_hat(3) * sin(T*w));
+            obj.G(4,1) = ...
+                T * obj.Radius_left / obj.Wheelbase * ...
+                (obj.x_hat(4) * cos(T*w) - obj.x_hat(3) * sin(T*w));
+            obj.G(4,2) = ...
+                T * obj.Radius_right / obj.Wheelbase * ...
+                (obj.x_hat(4) * cos(T*W) - obj.x_hat(3) * sin(T*w));
             
             
-            % Store this input value, it may be useful later.  Especially
-            % in the case where measurement updates come significantly
-            % faster than time updates.
-            obj.prev_u = u;
+            
+            
+
         end
         
         function [x, P] = TimeUpdate(obj, u, time)
@@ -131,15 +149,22 @@ classdef LawnmowerModel<handle
             
             obj.UpdateModel(u,dt);
             
-            v = obj.x_hat(5)/2 * u(2) + obj.x_hat(4)/2 * u(1);
-            w = obj.x_hat(5)/obj.x_hat(6) * u(2) ...
-                - obj.x_hat(4)/obj.x_hat(6) * u(1);
+            v = obj.Radius_left * u(1)/2 + ...
+                obj.Radius_right * u(2)/2;
+            w = -obj.Radius_left * u(1)/obj.Wheelbase + ...
+                obj.Radius_right * u(2)/obj.Wheelbase;
+            
+            phi_n_prime = obj.x_hat(3) * cos(dt * w) - ...
+                obj.x_hat(4) * sin(dt * w);
+            phi_e_prime = obj.x_hat(3) * cost(dt*w) + ...
+                obj.x_hat(4) * sin(dt * w);
             
             obj.x_hat(1) = obj.x_hat(1) + ...
-                dt * v * cos(obj.x_hat(3) + dt * w/2);
+                dt * v * phi_n_prime;
             obj.x_hat(2) = obj.x_hat(2) + ...
-                dt * v * sin(obj.x_hat(3) + dt * w/2);
-            obj.x_hat(3) = obj.x_hat(3) + dt * w;
+                dt * v * phi_e_prime;
+            obj.x_hat(3) = phi_n_prime;
+            obj.x_hat(4) = phi_e_prime;
             
             obj.P = obj.F * obj.P * obj.F' + obj.G * obj.Q * obj.G';
             
@@ -149,8 +174,8 @@ classdef LawnmowerModel<handle
         
         function [x_hat, P, innovation] = MeasUpdateGPS(obj, y_gps, R_gps)
             if nargin == 2, 
-                C_gps = [1, 0, 0, 0, 0, 0; 
-                         0, 1, 0, 0, 0, 0];
+                C_gps = [1, 0, 0, 0, 0, 0, 0; 
+                         0, 1, 0, 0, 0, 0, 0];
                 innovation = y_gps' - C_gps * obj.x_hat;
                 S = C_gps * obj.P * C_gps' + obj.R_gps;
                 K = obj.P * C_gps'/S;
@@ -160,8 +185,8 @@ classdef LawnmowerModel<handle
                 x_hat = obj.x_hat;
                 P = obj.P;
             else
-                C_gps = [1, 0, 0, 0, 0, 0; 
-                         0, 1, 0, 0, 0, 0];
+                C_gps = [1, 0, 0, 0, 0, 0, 0; 
+                         0, 1, 0, 0, 0, 0, 0];
                 innovation = y_gps' - C_gps * obj.x_hat;
                 S = C_gps * obj.P * C_gps' + R_gps;
                 K = obj.P * C_gps'/S;
@@ -174,7 +199,7 @@ classdef LawnmowerModel<handle
         end
         
         function [x_hat, P, innovation] = MeasUpdateIMU(obj, y_imu)
-            C_imu = [0, 0, 1, 0, 0, 0]; 
+            C_imu = [0, 0, 1, 0, 0, 0, 0]; 
             innovation = y_imu - C_imu * obj.x_hat;
             S = C_imu * obj.P * C_imu' + obj.R_imu;
             K = obj.P * C_imu'/S;

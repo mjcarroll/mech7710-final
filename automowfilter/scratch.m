@@ -73,3 +73,11 @@ for ii = 1:length(imu_data)
     end
 end
 plot(imu_data(:,4))
+
+%%
+plots = 'IJKW';
+for ii = 1:4
+    subplot(4,1,ii)
+    scatter(imu(:,1),imu(:,ii+3),'.')
+    title(sprintf('%c',plots(ii)))
+end
