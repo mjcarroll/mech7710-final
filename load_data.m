@@ -1,4 +1,4 @@
-dataset = '~/Dropbox/Documentation/data/outside_broun_night_camera_2011-05-01-21-51-42/';
+dataset = '~/Dropbox/Documentation/data/outside_broun_night_camera_nobase_2011-05-01-22-02-07/';
 load(strcat(dataset,'utm_fix.csv'));
 load(strcat(dataset,'imu.csv'));
 load(strcat(dataset,'encoders.csv'));
@@ -44,7 +44,6 @@ encoder_data(:,2:3) = encoders(:,2:3);
 imu_data = zeros(length(imu),7);
 imu_data(:,1) = imu(:,1) * 1e-9;
 [imu_data(:,2), imu_data(:,3), imu_data(:,4)] = quat2angle(imu(:,4:7));
-imu_data(:,2) = imu_data(:,2);
 imu_data(:,5:7) = imu(:,[8 12 16]);
 
 %%
