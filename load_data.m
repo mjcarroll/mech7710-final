@@ -1,7 +1,11 @@
 dataset = '~/Dropbox/Documentation/data/outside_broun_night_camera_nobase_2011-05-01-22-02-07/';
-load(strcat(dataset,'utm_fix.csv'));
-load(strcat(dataset,'imu.csv'));
-load(strcat(dataset,'encoders.csv'));
+utm_fix = importdata(strcat(dataset,'utm_fix.csv'),';',1);
+imu = importdata(strcat(dataset,'imu.csv'),';',1);
+encoders = importdata(strcat(dataset,'encoders.csv'),';',1);
+
+utm_fix = utm_fix.data;
+encoders = encoders.data;
+imu = imu.data;
 
 %% Load UTM
 % Load in UTM data into an array.
