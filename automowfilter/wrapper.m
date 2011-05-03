@@ -9,17 +9,18 @@ imu_data(:,4)= imu_data(:,4) - deg2rad(90);
 %% Initialization of Filter Variables
 
 % Initial State of x_hat
-% x_hat = [Easting, Northing, Phi, Radius_L, Radius_R, Wheelbase]
+% x_hat = [Easting, Northing, Phi, Radius_L, Radius_R, Wheelbase, AHRS Bias]
 % Loaded with nominal values of wheel radius and wheelbase length
-x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461];
+x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461, 0];
 
 % We have a relatively high degree of confidence in our "constants"
-P_i = diag([1 1 1 1e-3 1e-3 1e-3]);
+P_i = diag([1 1 1 1e-3 1e-3 1e-3 1]);
 
 % Nominal Values of R and Q, for a non-adaptive filter.
 R_imu = 0.1;
 R_gps = 2 * eye(2);
-Q = diag([0.2 0.2 0.2 0 0 0]);
+Q = diag([0.2 0.2 0.2 0 0 0 0]);
+
 
 % Instantiate the model/filter
 model = LawnmowerModel(x_hat_i, P_i, Q, R_gps, R_imu);
@@ -30,17 +31,18 @@ run = true;
 time_index  = 1;
 time_end = 10000;
 
+
 iEncoder    = 1;
 iIMU        = 1;
 iGPS        = 1;
 
 wc_length = length(encoder_data) + length(utm_data) + length(imu_data);
-x_hat = zeros(wc_length,6);
+x_hat = zeros(wc_length,7);
 time = zeros(wc_length,1);
 
 time_index_u = 1;
 wc_length_nogps = length(encoder_data) + length(imu_data);
-x_hat_u = zeros(wc_length_nogps,6);
+x_hat_u = zeros(wc_length_nogps,7);
 time_u = zeros(wc_length_nogps,1);
 
 model.prev_time = imu_data(1,1);
@@ -105,8 +107,10 @@ figure(1);
 plot(x_hat(1:time_end,1),x_hat(1:time_end,2))
 hold on;
 plot(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'g')
+
 %%
 figure(2);
 plot(x_hat_u(1:time_index_u,1),x_hat_u(1:time_index_u,2))
 hold on;
 plot(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'g')
+
