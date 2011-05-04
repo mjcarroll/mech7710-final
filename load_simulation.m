@@ -1,7 +1,7 @@
 
 Ts = 0.02;
 
-time = 0:Ts:30;
+time = 0:Ts:100;
 
 wheel_base_length = 0.5461;
 wheel_diameter = 0.158*2;
@@ -35,8 +35,8 @@ utm_noise = zeros(2, length(time/10));
 utm_noise(1,:) = 0.1*randn(1,length(time/10));
 utm_noise(2,:) = 0.1*randn(1,length(time/10));
 
-utm_noise(:, 300:900) = utm_noise(:, 300:900)*50;
-utm_data(300:900, 4:6) = utm_data(300:900, 4:6)*50;
+utm_noise(:, 300:900) = utm_noise(:, 300:900)*10;
+utm_data(300:900, 4:6) = utm_data(300:900, 4:6)*100;
 
 utm_bias = [0.0 0.0];
 

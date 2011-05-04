@@ -15,7 +15,7 @@ classdef LawnmowerModel<handle
     end
     
     properties(Constant = true)
-        nx = 6;
+        nx = 7;
         ny_gps = 2;
         ny_imu = 1;
         nu = 2;
@@ -33,14 +33,14 @@ classdef LawnmowerModel<handle
             % R_imu         -  IMU Measurement Noise Covariance
             if(nargin == 0)
                 % Default case, initialize everything to some values.
-                obj.x_hat = [zeros(obj.nx/2,1); ones(obj.nx/2,1)];
+                obj.x_hat = [zeros(3,1); ones(3,1);0];
                 obj.P = eye(obj.nx);
                 obj.Q = eye(obj.nx);
                 obj.R_gps = 500*eye(obj.ny_gps);
                 obj.R_imu = eye(obj.ny_imu);
                 obj.prev_u = zeros(obj.nu,1);
-                obj.F = zeros(6);
-                obj.G = zeros(6);
+                obj.F = zeros(obj.nx);
+                obj.G = zeros(obj.nx);
             else
                 % Case with input arguemnts
                 % Make sure that x_hat_i is properly sized, transpose if
@@ -71,8 +71,8 @@ classdef LawnmowerModel<handle
                 obj.prev_time = 0;
                 % Initialize the model to zero, will get set on first
                 % update.
-                obj.F = zeros(6);
-                obj.G = zeros(6);
+                obj.G = zeros(obj.nx);
+                obj.F = zeros(obj.nx);
             end
             return
         end
@@ -80,7 +80,7 @@ classdef LawnmowerModel<handle
         function UpdateModel(obj,u,dt)
             % Here is where we construct the discrete F matrix from our
             % state equations.
-            obj.F = eye(6);
+            obj.F = eye(obj.nx);
             obj.F(1,3) = -1/2 * dt * ...
                 (obj.x_hat(4) * u(1) + obj.x_hat(5)*u(2)) ...
                 * sin(obj.x_hat(3));
@@ -114,6 +114,7 @@ classdef LawnmowerModel<handle
             obj.G(4,4) = dt;
             obj.G(5,5) = dt;
             obj.G(6,6) = dt;
+            obj.G(7,7) = dt;
             
             
             % Store this input value, it may be useful later.  Especially
@@ -149,8 +150,8 @@ classdef LawnmowerModel<handle
         
         function [x_hat, P, innovation] = MeasUpdateGPS(obj, y_gps, R_gps)
             if nargin == 2, 
-                C_gps = [1, 0, 0, 0, 0, 0; 
-                         0, 1, 0, 0, 0, 0];
+                C_gps = [1, 0, 0, 0, 0, 0, 0; 
+                         0, 1, 0, 0, 0, 0, 0];
                 innovation = y_gps' - C_gps * obj.x_hat;
                 S = C_gps * obj.P * C_gps' + obj.R_gps;
                 K = obj.P * C_gps'/S;
@@ -160,8 +161,8 @@ classdef LawnmowerModel<handle
                 x_hat = obj.x_hat;
                 P = obj.P;
             else
-                C_gps = [1, 0, 0, 0, 0, 0; 
-                         0, 1, 0, 0, 0, 0];
+                C_gps = [1, 0, 0, 0, 0, 0, 0; 
+                         0, 1, 0, 0, 0, 0, 0];
                 innovation = y_gps' - C_gps * obj.x_hat;
                 S = C_gps * obj.P * C_gps' + R_gps;
                 K = obj.P * C_gps'/S;
@@ -174,7 +175,7 @@ classdef LawnmowerModel<handle
         end
         
         function [x_hat, P, innovation] = MeasUpdateIMU(obj, y_imu)
-            C_imu = [0, 0, 1, 0, 0, 0]; 
+            C_imu = [0, 0, 1, 0, 0, 0, 1]; 
             innovation = y_imu - C_imu * obj.x_hat;
             innovation = wrapToPi(innovation);
             S = C_imu * obj.P * C_imu' + obj.R_imu;
