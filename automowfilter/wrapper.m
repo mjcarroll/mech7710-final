@@ -5,17 +5,10 @@ addpath('../');
 load_data;
 toc
 
-adaptive = true;
-
-
+adaptive = false;
 
 imu_data(:,4)= imu_data(:,4)-deg2rad(86);
 
-for ii = 1:length(imu_data)
-    if imu_data(ii,4) < 0
-        imu_data(ii,4) = imu_data(ii,4) + 2 * pi;
-    end
-end
 %% Initialization of Filter Variables
 
 % Initial State of x_hat
@@ -27,9 +20,9 @@ x_hat_i = [0, 0, 0, 0.158, 0.158, 0.5461];
 P_i = diag([1 1 1 1e-10 1e-10 1e-10]);
 
 % Nominal Values of R and Q, for a non-adaptive filter.
-R_imu = 0.1;
+R_imu = 0.2;
 R_gps = 0.01 * eye(2);
-Q = diag([1 1 0 0 0 0]);
+Q = diag([0.1 0.1 0 0 0 0]);
 
 % Instantiate the model/filter
 model = LawnmowerModel(x_hat_i, P_i, Q, R_gps, R_imu);

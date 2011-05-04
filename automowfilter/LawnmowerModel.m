@@ -176,6 +176,7 @@ classdef LawnmowerModel<handle
         function [x_hat, P, innovation] = MeasUpdateIMU(obj, y_imu)
             C_imu = [0, 0, 1, 0, 0, 0]; 
             innovation = y_imu - C_imu * obj.x_hat;
+            innovation = wrapToPi(innovation);
             S = C_imu * obj.P * C_imu' + obj.R_imu;
             K = obj.P * C_imu'/S;
             obj.x_hat = obj.x_hat + K * innovation;
