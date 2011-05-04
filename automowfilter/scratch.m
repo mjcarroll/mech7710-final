@@ -95,3 +95,38 @@ hold on
 scatter(imu_data(:,1),truth(3,:))
 scatter(time(1:time_end),x_hat(1:time_end,3),'g+')
 
+
+%%
+
+figure(5), clf;
+subplot(1,2,1);
+plot(x_hat(1:time_end-1,1),x_hat(1:time_end-1,2), 'b')
+
+xlabel('Easting'); ylabel('Northing');
+
+hold on, axis equal, grid on;
+plot(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r')
+if(simulation)
+    plot(truth(1,:), truth(2,:), 'k');
+    legend('Estimated position', 'GPS position', 'Truth Position');
+else
+    legend('Estimated position', 'GPS position');
+end
+subplot(1,2,2);
+plot(x_hat(1:time_end-1,1),x_hat(1:time_end-1,2), 'b')
+
+xlabel('Easting'); ylabel('Northing');
+
+hold on, axis equal, grid on;
+plot(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r')
+if(simulation)
+    plot(truth(1,:), truth(2,:), 'k');
+    legend('Estimated position', 'GPS position', 'Truth Position');
+else
+    legend('Estimated position', 'GPS position');
+end
+
+
+
+
+

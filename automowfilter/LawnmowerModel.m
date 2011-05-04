@@ -12,6 +12,7 @@ classdef LawnmowerModel<handle
         prev_time;
         F;
         G;
+        last_R_gps;
     end
     
     properties(Constant = true)
@@ -74,6 +75,7 @@ classdef LawnmowerModel<handle
                 obj.G = zeros(obj.nx);
                 obj.F = zeros(obj.nx);
             end
+            obj.last_R_gps = 0;
             return
         end
         
@@ -148,7 +150,7 @@ classdef LawnmowerModel<handle
             P = obj.P;
         end
         
-        function [x_hat, P, innovation] = MeasUpdateGPS(obj, y_gps, R_gps)
+        function [x_hat, P, innovation] = MeasUpdateGPS(obj, y_gps, r_gps)
             if nargin == 2, 
                 C_gps = [1, 0, 0, 0, 0, 0, 0; 
                          0, 1, 0, 0, 0, 0, 0];
@@ -163,14 +165,19 @@ classdef LawnmowerModel<handle
             else
                 C_gps = [1, 0, 0, 0, 0, 0, 0; 
                          0, 1, 0, 0, 0, 0, 0];
+%                 if r_gps(1) ~= obj.last_R_gps(1),
+%                    obj.P(1:2,1:2) = obj.P(1:2,1:2) * 100;
+%                    display('adjusting P(1:2,1:2)');
+%                 end
                 innovation = y_gps' - C_gps * obj.x_hat;
-                S = C_gps * obj.P * C_gps' + R_gps;
+                S = C_gps * obj.P * C_gps' + r_gps;
                 K = obj.P * C_gps'/S;
                 obj.x_hat = obj.x_hat + K * innovation;
                 obj.P = (eye(obj.nx) - K * C_gps) * obj.P;
 
                 x_hat = obj.x_hat;
                 P = obj.P;
+                obj.last_R_gps = r_gps;
             end
         end
         

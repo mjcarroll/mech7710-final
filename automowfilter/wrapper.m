@@ -8,6 +8,7 @@ simulation = false;
 toc
 
 adaptive = false;
+plot_ellipses = false;
 
 if(~simulation)
     imu_data(:,4)= imu_data(:,4)-deg2rad(90);
@@ -23,6 +24,7 @@ x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461, 0];
 
 % We have a relatively high degree of confidence in our "constants"
 P_i = diag([1 1 1 1e-3 1e-3 1e-3 1]);
+% P_i = diag([0 0 0 0 0 0 0]);
 
 % Nominal Values of R and Q, for a non-adaptive filter.
 R_imu = 0.2;
@@ -91,14 +93,15 @@ while run == true,
     elseif tGPS < tEncoder && tGPS <= tIMU
         time(time_index) = tGPS;
         if adaptive == true,
-            [x_hat(time_index,:),P] = model.MeasUpdateGPS(utm_data(iGPS,2:3),...
+            [x_hat(time_index,:),P, inno] = model.MeasUpdateGPS(utm_data(iGPS,2:3),...
                 diag([utm_data(iGPS,[4,5])].^2));
-            if mod(iGPS,20) == 0
+            innovations(:,iGPS) = inno;
+            asdf(iGPS,1) = P(1,1);
+            asdf(iGPS,2) = P(2,2);
+            if plot_ellipses && mod(iGPS,20) == 0
                 e = likelihood(x_hat(time_index,1:2)',P(1:2,1:2),1);
                 plot(e(1,:),e(2,:),'g')
                 clear e;
-                asdf(ii,1) = P(1,1);
-                asdf(ii,2) = P(2,2);
                 ii = ii + 1;
             end
         else
@@ -128,15 +131,16 @@ toc
 time_end = time_index;
 
 %%
-figure(1);
-plot(x_hat(1:time_end,1),x_hat(1:time_end,2), 'b')
+figure(7);
+subplot(1,2,2);
+plot(x_hat(1:time_end-1,1),x_hat(1:time_end-1,2), 'b')
 
 xlabel('Easting'); ylabel('Northing');
 
 hold on, axis equal, grid on;
-scatter(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r+')
+plot(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r')
 if(simulation)
-    plot(truth(1,:), truth(2,:), 'g');
+    plot(truth(1,:), truth(2,:), 'k');
     legend('Estimated position', 'GPS position', 'Truth Position');
 else
     legend('Estimated position', 'GPS position');
