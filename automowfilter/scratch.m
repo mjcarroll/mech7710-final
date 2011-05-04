@@ -78,3 +78,20 @@ end
 
 subplot(2,1,2)
 plot(utm_data(:,1),utm_heading(:));
+
+
+%%
+figure(4),clf;
+subplot(3,1,1)
+hold on
+scatter(imu_data(:,1),truth(1,:))
+scatter(time(1:time_end),x_hat(1:time_end,1),'g+')
+subplot(3,1,2)
+hold on
+scatter(imu_data(:,1),truth(2,:))
+scatter(time(1:time_end),x_hat(1:time_end,2),'g+')
+subplot(3,1,3)
+hold on
+scatter(imu_data(:,1),truth(3,:))
+scatter(time(1:time_end),x_hat(1:time_end,3),'g+')
+
