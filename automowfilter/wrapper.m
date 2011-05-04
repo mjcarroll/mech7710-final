@@ -133,7 +133,12 @@ xlabel('Easting'); ylabel('Northing');
 
 hold on, axis equal, grid on;
 scatter(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r+')
-legend('Estimated position', 'GPS position');
+if(simulation)
+    plot(truth(1,:), truth(2,:), 'g');
+    legend('Estimated position', 'GPS position', 'Truth Position');
+else
+    legend('Estimated position', 'GPS position');
+end
 
 % %%
 % qinc = 1;
