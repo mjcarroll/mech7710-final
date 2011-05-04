@@ -4,9 +4,7 @@ tic;
 addpath('../');
 load_data;
 toc
-
-adaptive = false;
-
+adaptive = true;
 imu_data(:,4)= imu_data(:,4)-deg2rad(86);
 
 %% Initialization of Filter Variables
@@ -80,21 +78,13 @@ while run == true,
         x_hat_u(time_index_u,:) = model_uncorrected.MeasUpdateIMU(imu_data(iIMU,4));
         time_index_u = time_index_u+1;
         
-        iIMU = iIMU + 10;
+        iIMU = iIMU + 3;
         
     elseif tGPS < tEncoder && tGPS < tIMU
         time(time_index) = tGPS;
         if adaptive == true,
             [x_hat(time_index,:),P] = model.MeasUpdateGPS(utm_data(iGPS,2:3),...
-                diag([utm_data(iGPS,[4,5])]));
-            if mod(iGPS,20) == 0
-                e = likelihood(x_hat(time_index,1:2)',P(1:2,1:2),1);
-                plot(e(1,:),e(2,:),'g')
-                clear e;
-                asdf(ii,1) = P(1,1);
-                asdf(ii,2) = P(2,2);
-                ii = ii + 1;
-            end
+                diag([utm_data(iGPS,[4,5])].^2));
         else
             x_hat(time_index,:) = model.MeasUpdateGPS(utm_data(iGPS,2:3));
         end
@@ -123,7 +113,7 @@ time_end = time_index;
 
 %%
 figure(1);
-plot(x_hat(1:time_end,1),x_hat(1:time_end,2), 'b')
+scatter(x_hat(1:time_end,1),x_hat(1:time_end,2), 'b+')
 
 xlabel('Easting'); ylabel('Northing');
 
