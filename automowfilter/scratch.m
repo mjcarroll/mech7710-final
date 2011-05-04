@@ -5,6 +5,20 @@ load_data;
 imu_data(:,1) = imu_data(:,1) - imu_data(1,1);
 utm_data(:,1) = utm_data(:,1) - utm_data(1,1);
 
+
+%%
+load_data;
+rollovers = 0;
+
+for ii = 1:length(imu_data)-1
+    if sign(imu_data(ii,4)) == -1
+        imu_data(ii,4) = imu_data(ii,4) + 2* pi;
+    end
+end
+
+
+plot(imu_data(:,4))
+
 %% UTM vs IMU Data
 figure();
 subplot(3,1,1)
@@ -64,12 +78,3 @@ end
 
 subplot(2,1,2)
 plot(utm_data(:,1),utm_heading(:));
-
-%%
-
-for ii = 1:length(imu_data)
-    if imu_data(ii,4) < 0
-        imu_data(ii,4) = imu_data(ii,4) + 2 * pi;
-    end
-end
-plot(imu_data(:,4))
