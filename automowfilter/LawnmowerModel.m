@@ -182,6 +182,8 @@ classdef LawnmowerModel<handle
             obj.x_hat = obj.x_hat + K * innovation;
             obj.P = (eye(obj.nx) - K * C_imu) * obj.P;
             
+            obj.x_hat(3) = wrapToPi(obj.x_hat(3));
+            
             x_hat = obj.x_hat;
             P = obj.P;
         end

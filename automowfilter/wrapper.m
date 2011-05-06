@@ -2,10 +2,15 @@ clear; clc
 %% Load in input data
 tic;
 addpath('../');
-load_data;
+% load_data;
+load_simulation;
+simulation = true;
 toc
-adaptive = true;
-imu_data(:,4)= imu_data(:,4)-deg2rad(86);
+adaptive = false;
+
+if(~simulation)
+    imu_data(:,4)= imu_data(:,4)-deg2rad(86);
+end
 
 %% Initialization of Filter Variables
 
@@ -55,7 +60,7 @@ while run == true,
     tGPS     = utm_data(iGPS,1);
     tIMU     = imu_data(iIMU,1);
 
-    if tEncoder < tIMU && tEncoder < tGPS,
+    if tEncoder <= tIMU && tEncoder <= tGPS,
         % Add this to the time array.
         time(time_index) = tEncoder;
         % Do a time update
@@ -80,11 +85,19 @@ while run == true,
         
         iIMU = iIMU + 3;
         
-    elseif tGPS < tEncoder && tGPS < tIMU
+    elseif tGPS < tEncoder && tGPS <= tIMU
         time(time_index) = tGPS;
         if adaptive == true,
             [x_hat(time_index,:),P] = model.MeasUpdateGPS(utm_data(iGPS,2:3),...
                 diag([utm_data(iGPS,[4,5])].^2));
+            if mod(iGPS,20) == 0
+                e = likelihood(x_hat(time_index,1:2)',P(1:2,1:2),1);
+                plot(e(1,:),e(2,:),'g')
+                clear e;
+                asdf(ii,1) = P(1,1);
+                asdf(ii,2) = P(2,2);
+                ii = ii + 1;
+            end
         else
             x_hat(time_index,:) = model.MeasUpdateGPS(utm_data(iGPS,2:3));
         end
@@ -118,7 +131,7 @@ scatter(x_hat(1:time_end,1),x_hat(1:time_end,2), 'b+')
 xlabel('Easting'); ylabel('Northing');
 
 hold on, axis equal, grid on;
-plot(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r')
+scatter(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r+')
 legend('Estimated position', 'GPS position');
 
 % %%
@@ -129,7 +142,7 @@ legend('Estimated position', 'GPS position');
 %     cos(imu_data(1:20:iIMU+20,4)),sin(imu_data(1:20:iIMU+20,4)));
 %%
 figure(2), clf;
-scatter(x_hat_u(1:time_index_u,1),x_hat_u(1:time_index_u,2), 'b+')
+plot(x_hat_u(1:time_index_u,1),x_hat_u(1:time_index_u,2), 'b')
 hold on, axis equal, grid on;
 scatter(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r+')
 legend('Estimated position', 'GPS position');
