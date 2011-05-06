@@ -129,7 +129,7 @@ time_end = time_index;
 
 %%
 figure(1);
-plot(x_hat(1:time_end,1),x_hat(1:time_end,2), 'b')
+scatter(x_hat(1:time_end,1),x_hat(1:time_end,2), 'b')
 
 xlabel('Easting'); ylabel('Northing');
 
