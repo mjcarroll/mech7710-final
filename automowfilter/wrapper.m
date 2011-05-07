@@ -6,7 +6,6 @@ load_data;
 % load_simulation;
 simulation = false;
 toc
-
 adaptive = false;
 plot_ellipses = false;
 
@@ -88,7 +87,7 @@ while run == true,
         x_hat_u(time_index_u,:) = model_uncorrected.MeasUpdateIMU(imu_data(iIMU,4));
         time_index_u = time_index_u+1;
         
-        iIMU = iIMU + 10;
+        iIMU = iIMU + 3;
         
     elseif tGPS < tEncoder && tGPS <= tIMU
         time(time_index) = tGPS;
@@ -132,7 +131,7 @@ time_end = time_index;
 
 %%
 figure(1);
-plot(x_hat(1:time_end-1,1),x_hat(1:time_end-1,2), 'b');
+scatter(x_hat(1:time_end,1),x_hat(1:time_end,2), 'b+')
 
 xlabel('Easting'); ylabel('Northing');
 
