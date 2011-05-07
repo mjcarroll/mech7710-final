@@ -126,7 +126,15 @@ else
     legend('Estimated position', 'GPS position');
 end
 
+%%
 
-
+figure(6);
+plot(x_hat(1:time_end, 7));
+hold on;
+plot([1 time_end], [mean(x_hat(1:time_end,7)) mean(x_hat(1:time_end,7))], 'k--');
+plot([1 time_end], [(-3.616667/180)*pi (-3.616667/180)*pi], 'r--');
+ylabel('IMU Bias State (radians)');
+xlabel('Time');
+legend('IMU Bias Estimate', 'Mean Bias', 'Magnetic Declination for Auburn');
 
 

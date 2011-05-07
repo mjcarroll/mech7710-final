@@ -20,16 +20,16 @@ end
 % x_hat = [Easting, Northing, Phi, Radius_L, Radius_R, Wheelbase, AHRS Bias]
 % Loaded with nominal values of wheel radius and wheelbase length
 
-x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461, 0];
+x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461, 0, 0];
 
 % We have a relatively high degree of confidence in our "constants"
-P_i = diag([1 1 1 1e-3 1e-3 1e-3 1]);
+P_i = diag([1 1 1 1e-3 1e-3 1e-3 1 1]);
 % P_i = diag([0 0 0 0 0 0 0]);
 
 % Nominal Values of R and Q, for a non-adaptive filter.
 R_imu = 0.2;
 R_gps = 0.1 * eye(2);
-Q = diag([0.3 0.3 0 0 0 0 1e-6]);
+Q = diag([0.3 0.3 0 0 0 0 1e-6 1e-3]);
 
 
 % Instantiate the model/filter
@@ -47,12 +47,12 @@ iIMU        = 1;
 iGPS        = 1;
 
 wc_length = length(encoder_data) + length(utm_data) + length(imu_data);
-x_hat = zeros(wc_length,7);
+x_hat = zeros(wc_length,8);
 time = zeros(wc_length,1);
 
 time_index_u = 1;
 wc_length_nogps = length(encoder_data) + length(imu_data);
-x_hat_u = zeros(wc_length_nogps,7);
+x_hat_u = zeros(wc_length_nogps,8);
 time_u = zeros(wc_length_nogps,1);
 
 model.prev_time = imu_data(1,1);
@@ -131,14 +131,13 @@ toc
 time_end = time_index;
 
 %%
-figure(7);
-subplot(1,2,2);
-plot(x_hat(1:time_end-1,1),x_hat(1:time_end-1,2), 'b')
+figure(1);
+plot(x_hat(1:time_end-1,1),x_hat(1:time_end-1,2), 'b');
 
 xlabel('Easting'); ylabel('Northing');
 
 hold on, axis equal, grid on;
-plot(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r')
+plot(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r');
 if(simulation)
     plot(truth(1,:), truth(2,:), 'k');
     legend('Estimated position', 'GPS position', 'Truth Position');
@@ -152,10 +151,10 @@ end
 %     cos(x_hat(1:qinc:time_end,3)),sin(x_hat(1:qinc:time_end,3)),'g')
 % quiver(utm_data(1:iGPS,2),utm_data(1:iGPS,3),...
 %     cos(imu_data(1:20:iIMU+20,4)),sin(imu_data(1:20:iIMU+20,4)));
-%%
-% figure(2), clf;
-% plot(x_hat_u(1:time_index_u,1),x_hat_u(1:time_index_u,2), 'b')
-% hold on, axis equal, grid on;
-% scatter(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r+')
-% legend('Estimated position', 'GPS position');
+%
+figure(2), clf;
+plot(x_hat_u(1:time_index_u,1),x_hat_u(1:time_index_u,2), 'b+')
+hold on, axis equal, grid on;
+scatter(utm_data(1:iGPS,2),utm_data(1:iGPS,3),'r+')
+legend('Estimated position', 'GPS position');
 

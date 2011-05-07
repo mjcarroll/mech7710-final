@@ -16,7 +16,7 @@ classdef LawnmowerModel<handle
     end
     
     properties(Constant = true)
-        nx = 7;
+        nx = 8;
         ny_gps = 2;
         ny_imu = 1;
         nu = 2;
@@ -34,7 +34,7 @@ classdef LawnmowerModel<handle
             % R_imu         -  IMU Measurement Noise Covariance
             if(nargin == 0)
                 % Default case, initialize everything to some values.
-                obj.x_hat = [zeros(3,1); ones(3,1);0];
+                obj.x_hat = [zeros(3,1); ones(3,1);0;0];
                 obj.P = eye(obj.nx);
                 obj.Q = eye(obj.nx);
                 obj.R_gps = 500*eye(obj.ny_gps);
@@ -117,6 +117,7 @@ classdef LawnmowerModel<handle
             obj.G(5,5) = dt;
             obj.G(6,6) = dt;
             obj.G(7,7) = dt;
+            obj.G(8,8) = dt;
             
             
             % Store this input value, it may be useful later.  Especially
@@ -152,8 +153,8 @@ classdef LawnmowerModel<handle
         
         function [x_hat, P, innovation] = MeasUpdateGPS(obj, y_gps, r_gps)
             if nargin == 2, 
-                C_gps = [1, 0, 0, 0, 0, 0, 0; 
-                         0, 1, 0, 0, 0, 0, 0];
+                C_gps = [1, 0, 0, 0, 0, 0, 1, 0; 
+                         0, 1, 0, 0, 0, 0, 0, 0];
                 innovation = y_gps' - C_gps * obj.x_hat;
                 S = C_gps * obj.P * C_gps' + obj.R_gps;
                 K = obj.P * C_gps'/S;
@@ -163,8 +164,8 @@ classdef LawnmowerModel<handle
                 x_hat = obj.x_hat;
                 P = obj.P;
             else
-                C_gps = [1, 0, 0, 0, 0, 0, 0; 
-                         0, 1, 0, 0, 0, 0, 0];
+                C_gps = [1, 0, 0, 0, 0, 0, 1, 0; 
+                         0, 1, 0, 0, 0, 0, 0, 0];
 %                 if r_gps(1) ~= obj.last_R_gps(1),
 %                    obj.P(1:2,1:2) = obj.P(1:2,1:2) * 100;
 %                    display('adjusting P(1:2,1:2)');
@@ -182,7 +183,7 @@ classdef LawnmowerModel<handle
         end
         
         function [x_hat, P, innovation] = MeasUpdateIMU(obj, y_imu)
-            C_imu = [0, 0, 1, 0, 0, 0, 1]; 
+            C_imu = [0, 0, 1, 0, 0, 0, 0, 0]; 
             innovation = y_imu - C_imu * obj.x_hat;
             innovation = wrapToPi(innovation);
             S = C_imu * obj.P * C_imu' + obj.R_imu;
