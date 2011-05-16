@@ -1,9 +1,9 @@
 %dataset = '~/Dropbox/Documentation/data/outside_broun_night_camera_nobase_2011-05-01-22-02-07/';
-% dataset = '~/Dropbox/Documentation/data/outside_broun_night_camera_2011-05-01-21-51-42/';
-dataset = '~/Dropbox/Documentation/data/outside_broun_heading_test_2011-05-01-21-37-15/';
+dataset = '~/Dropbox/Documentation/data/outside_broun_night_camera_2011-05-01-21-51-42/';
+%dataset = '~/Dropbox/Documentation/data/outside_broun_heading_test_2011-05-01-21-37-15/';
 %dataset = '~/Dropbox/Documentation/data/outside_broun_night_camera_nobase_2011-05-01-22-04-21/';
 %dataset = '~/Dropbox/Documentation/data/outside_broun_night_camera_nobase_2011-05-01-22-04-21/';
-utm_fix = importdata(strcat(dataset,'utm_fix.csv'),',',1);
+utm_fix = importdata(strcat(dataset,'utm_fix.csv'),';',1);
 imu = importdata(strcat(dataset,'imu.csv'),',',1);
 encoders = importdata(strcat(dataset,'encoders.csv'),',',1);
 

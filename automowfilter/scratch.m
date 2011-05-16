@@ -1,9 +1,10 @@
 addpath('../');
 load_data;
 
-%%
 imu_data(:,1) = imu_data(:,1) - imu_data(1,1);
 utm_data(:,1) = utm_data(:,1) - utm_data(1,1);
+
+imu_data(:,4) = wrapToPi(imu_data(:,4) - pi/2);
 
 
 %%
