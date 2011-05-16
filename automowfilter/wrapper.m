@@ -15,15 +15,15 @@ plot_ellipses = false;
 % x_hat = [Easting, Northing, Phi, Radius_L, Radius_R, Wheelbase, AHRS Bias]
 % Loaded with nominal values of wheel radius and wheelbase length
 
-x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461];
+x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461 0 ];
 
 % We have a relatively high degree of confidence in our "constants"
-P_i = diag([100 100 100 1e-3 1e-3 1e-3]);
+P_i = diag([100 100 100 1e-3 1e-3 1e-3 100]);
 
 % Nominal Values of R and Q, for a non-adaptive filter.
 R_imu = 0.1;
 R_gps = 0.1 * eye(2);
-Q = diag([0.1 0.1 0 0 0 0]);
+Q = diag([0.1 0.1 0 0 0 0 1e-3]);
 
 
 % Instantiate the model/filter
