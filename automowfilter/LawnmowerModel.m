@@ -1,4 +1,4 @@
-classdef lawnmowerModel<handle
+classdef LawnmowerModel<handle
     %UNTITLED2 Summary of this class goes here
     %   Detailed explanation goes here
     
