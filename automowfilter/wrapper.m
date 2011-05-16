@@ -38,7 +38,7 @@ time_end = 75000;
 
 iEncoder    = 1;
 iIMU        = 1;
-iGPS        = length(utm_data);
+iGPS        = 1;
 
 wc_length = length(encoder_data) + length(utm_data) + length(imu_data);
 x_hat = zeros(wc_length,model.nx);
@@ -68,7 +68,7 @@ while run == true,
         % Do a time update
         % encoder_data(,2) is the left wheel
         % encoder_data(,3) is the right wheel
-        [x_hat(time_index,:),P] = model.TimeUpdate(encoder_data(iEncoder,2:3),tEncoder);
+       [x_hat(time_index,:),P] = model.TimeUpdate(encoder_data(iEncoder,2:3),tEncoder);
         time_index = time_index + 1;
         
         time_u(time_index_u) = tEncoder;
@@ -105,9 +105,9 @@ while run == true,
         time_index = time_index + 1;
     end
     
-%     if iGPS == length(utm_data),
-%         run = false;
-%     end
+    if iGPS == length(utm_data),
+       run = false;
+    end
     if iIMU == length(imu_data),
         run = false;
     end

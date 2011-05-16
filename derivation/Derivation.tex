@@ -1,0 +1,129 @@
+\documentclass[11pt]{amsart}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{epstopdf}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\title{Derivation of the Automow Extended Kalman Filter}
+\author{M. Carroll and W. Woodall}
+\date{}                                           %Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+\section{Model Derivation}
+\subsection{Kinematics - Body Frame}
+First, the kinematics of the model in the body frame.  The body frame is x-forwards, y-left, and z-up.  Theta represents the rotation of the body about the z-axis.  Positive theta indicates counter-clockwise rotation.\\
+
+\begin{align}
+v &= \dfrac{r_R}{2} \omega_R + \dfrac{r_L}{2} \omega_L \\
+w &= \dfrac{r_L}{d} \omega_R - \dfrac{r_L}{d} \omega_L
+\end{align}
+
+\subsection{Kinematics - Earth Frame}
+Second the kinematics of the robot in the global coordinate frame.  The global coordinate frame is x-East, y-North, z-Up in UTM (Universal Trans-Mercator) coordinates.
+
+\begin{align}
+\dot{E} &= v \cos{\theta} \\
+\dot{N} &= v \sin{\theta} \\
+\dot{\theta} &= \omega
+\end{align}
+
+\subsection{States}
+
+Based on the reference paper, we choose the same augmented extended kalman filter states. The states are as follows.
+
+\begin{equation}
+x = \begin{bmatrix}
+E & N & \theta & r_L & r_R & d 
+\end{bmatrix}^T
+\end{equation}
+We have also experimented with two different augmented state vectors
+
+\begin{equation}
+x = \begin{bmatrix}
+E & N & \theta & r_L & r_R & d & E_{bias} & N_{bias}
+\end{bmatrix}^T
+\end{equation}
+
+\begin{equation}
+x = \begin{bmatrix}
+E & N & \theta & r_L & r_R & d & E_{bias} & N_{bias} & \theta_{bias}
+\end{bmatrix}^T
+\end{equation}
+
+\subsection{Update Equation - Nonlinear}
+This makes the discrete update equation as follows:
+
+\begin{equation}
+\begin{bmatrix}
+E \\ N \\ \theta \\ r_L \\ r_R \\ d 
+\end{bmatrix}_{k+1} = 
+\begin{bmatrix}
+E \\ N \\ \theta \\ r_L \\ r_R \\ d
+\end{bmatrix}_{k} +
+\begin{bmatrix}
+T v_k \cos{\theta_k + T w_k/2} \\
+T v_k \sin{\theta_k + T w_k/2} \\
+T w_k \\ 0 \\ 0 \\ 0
+\end{bmatrix} 
+ \end{equation}
+When expanded, this becomes:
+
+\begin{equation}
+\begin{bmatrix}
+x_1 \\ x_2 \\ x_3 \\ x_4 \\ x_5 \\ x_6 
+\end{bmatrix}_{k+1} = 
+\begin{bmatrix}
+x_1 \\ x_2 \\ x_3 \\ x_4 \\ x_5 \\ x_6 
+\end{bmatrix}_{k} +
+\begin{bmatrix}
+T v_k \cos{\theta_k + T w_k/2} \\
+T v_k \sin{\theta_k + T w_k/2} \\
+T w_k \\ 0 \\ 0 \\ 0
+\end{bmatrix} 
+ \end{equation}
+ 
+ \newpage
+\section{Filter Equation Derivation}
+\subsection{F Matrix}
+The Jacobian matrix at each iteration may be derived as
+
+\begin{equation}
+\begin{bmatrix}
+1 & 0 & A_{13} & A_{14} & A_{15} & 0 \\
+0 & 1 & A_{23} & A_{24} & A_{25} & 0 \\
+0 & 0 & 1 & A_{34} & A_{35} & A_{36} \\
+0 & 0 & 0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 0 & 0 & 1 
+\end{bmatrix}
+\end{equation}
+
+\begin{align}
+A_{13} &= \frac{\delta f_1}{\delta\theta} = \frac{\delta f_1}{\delta x_3} = -\frac{1}{2} T (r_L \omega_L + r_R \omega_R) \sin{\theta}  &= -\frac{1}{2} T (x_4 u_1 + x_5 u_2) \sin{x_3} \\
+A_{14} &= \frac{\delta f_1}{\delta r_L} = \frac{\delta f_1}{\delta x_4} = \frac{1}{2} T w_L \cos{\theta} &= \frac{1}{2} T u_1 \cos{x_3} \\
+A_{15} &= \frac{\delta f_1}{\delta r_R} = \frac{\delta f_1}{\delta x_5} = \frac{1}{2} T w_R \cos{\theta} &= \frac{1}{2} T u_2 \cos{x_3}\\
+A_{23} &= \frac{\delta f_2}{\delta\theta} = \frac{\delta f_2}{\delta x_3} = \frac{1}{2} T (r_L \omega_L + r_R \omega_R) \sin{\theta}  &= \frac{1}{2} T (x_4 u_1 + x_5 u_2) \sin{x_3} \\
+A_{24} &= \frac{\delta f_2}{\delta r_L} = \frac{\delta f_2}{\delta x_4} = \frac{1}{2} T w_L \sin{\theta} &= \frac{1}{2} T u_1 \sin{x_3} \\
+A_{25} &=\frac{\delta f_2}{\delta r_R} = \frac{\delta f_2}{\delta x_5} = \frac{1}{2} T w_R \sin{\theta} &= \frac{1}{2} T u_2 \sin{x_3} \\
+A_{34} &=\frac{\delta f_3}{\delta r_L} = \frac{\delta f_3}{\delta x_4} = -T \frac{\omega_L}{d} &= -T \frac{u_1}{x_6}\\
+A_{35} &=\frac{\delta f_3}{\delta r_R} = \frac{\delta f_3}{\delta x_5} = T \frac{\omega_R}{d} &= T \frac{u_2}{x_6}\\
+A_{36} &=\frac{\delta f_3}{\delta d} = \frac{\delta f_3}{\delta x_6} = T \dfrac{r_L \omega_L - r_R \omega_R}{d^2} &= T \dfrac{x_4 u_1 - x_5 u_2}{x_6^2}
+\end{align}
+
+\newpage
+\subsection{G Matrix}
+The G matrix is the jacobian of the system with respect to the noises.  The derivation depends on the following noises.
+
+\begin{equation}
+\begin{bmatrix}
+W_L \\ W_R \\ W_{\theta} \\ W_{RL} \\ W_{RR} \\ W_{WB} \\  
+\end{bmatrix} = 
+\end{equation}
+
+\end{document}  
