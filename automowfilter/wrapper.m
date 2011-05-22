@@ -6,7 +6,7 @@ load_data;
 % load_simulation;
 simulation = false;
 toc
-adaptive = false;
+adaptive = true;
 plot_ellipses = false;
 
 %% Initialization of Filter Variables
@@ -21,7 +21,7 @@ x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461 0 ];
 P_i = diag([100 100 100 1e-3 1e-3 1e-3 100]);
 
 % Nominal Values of R and Q, for a non-adaptive filter.
-R_imu = 0.1;
+R_imu = 0.012;
 R_gps = 0.1 * eye(2);
 Q = diag([0.1 0.1 0 0 0 0 1e-3]);
 
