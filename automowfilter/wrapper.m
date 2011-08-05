@@ -6,7 +6,7 @@ load_data;
 % load_simulation;
 simulation = false;
 toc
-adaptive = false;
+adaptive = true;
 plot_ellipses = false;
 
 %% Initialization of Filter Variables
@@ -21,9 +21,9 @@ x_hat_i = [0, 0, 0, 0.159, 0.159, 0.5461 0 ];
 P_i = diag([100 100 100 1e-3 1e-3 1e-3 100]);
 
 % Nominal Values of R and Q, for a non-adaptive filter.
-R_imu = 0.1;
+R_imu = 0.012;
 R_gps = 0.1 * eye(2);
-Q = diag([0.1 0.1 0 0 0 0 1e-3]);
+Q = diag([0.1 0.1 0 0 0 0 1e-5]);
 
 
 % Instantiate the model/filter
@@ -38,7 +38,7 @@ time_end = 75000;
 
 iEncoder    = 1;
 iIMU        = 1;
-iGPS        = 1;
+iGPS        = length(utm_data);
 
 wc_length = length(encoder_data) + length(utm_data) + length(imu_data);
 x_hat = zeros(wc_length,model.nx);
@@ -90,7 +90,7 @@ while run == true,
             x_hat_u(time_index_u,:) = model_uncorrected.MeasUpdateIMU(imu_corrected);
             time_index_u = time_index_u+1;
         end
-        iIMU = iIMU + 1;
+        iIMU = iIMU + 10;
     elseif tGPS < tEncoder && tGPS <= tIMU
         time(time_index) = tGPS;
         if adaptive == true,
@@ -106,7 +106,7 @@ while run == true,
     end
     
     if iGPS == length(utm_data),
-       run = false;
+%        run = false;
     end
     if iIMU == length(imu_data),
         run = false;
